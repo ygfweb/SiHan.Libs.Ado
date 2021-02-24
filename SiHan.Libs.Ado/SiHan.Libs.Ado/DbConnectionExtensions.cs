@@ -515,6 +515,17 @@ namespace SiHan.Libs.Ado
                 await connection.ExecuteNonQueryAsync(createIndexSql);
             }
         }
+
+        /// <summary>
+        /// 获取创建表的SQL语句
+        /// </summary>
+        public static string GetCreateTableSQL<T>(this DbConnection connection) where T : BaseEntity
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine(DbTableHelper.CreateTableSQL<T>());
+            sb.AppendLine(DbTableHelper.CreateIndexSQL<T>());
+            return sb.ToString();
+        }
     }
 }
 
