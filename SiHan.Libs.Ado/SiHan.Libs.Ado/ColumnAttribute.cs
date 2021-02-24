@@ -19,6 +19,16 @@ namespace SiHan.Libs.Ado
         /// 值转换器
         /// </summary>
         public Type Convert { get; set; } = null;
+
+        /// <summary>
+        /// 数据库类型（用于生成数据表）
+        /// </summary>
+        public string DbType { get; set; } = "";
+
+        /// <summary>
+        /// 数据库默认值（用于生成数据表）
+        /// </summary>
+        public string DbDefaultValue { get; set; } = "";
     }
 }
 

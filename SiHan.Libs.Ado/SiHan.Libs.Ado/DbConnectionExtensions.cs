@@ -53,6 +53,43 @@ namespace SiHan.Libs.Ado
         }
 
         /// <summary>
+        /// 查询实体列表
+        /// </summary>
+        public static async Task<List<T>> SelectAsync<T>(this DbConnection connection, SqlBuilder builder) where T : BaseEntity
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+            var buildResult = builder.GetQuery();
+            string sql = buildResult.Item1;
+            Dictionary<string, object> param = buildResult.Item2;
+            List<T> objList = new List<T>();
+            using (DbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = sql;
+                if (param != null)
+                {
+                    command.Parameters.Clear();
+                    command.AppendDictionaryParameters(param);
+                }
+                using (DbDataReader reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        T obj = reader.ToEntity<T>();
+                        objList.Add(obj);
+                    }
+                }
+            }
+            return objList;
+        }
+
+        /// <summary>
         /// 获取表中的所有记录
         /// </summary>
         public static async Task<List<T>> GetAllAsync<T>(this DbConnection connection) where T : BaseEntity
@@ -166,6 +203,35 @@ namespace SiHan.Libs.Ado
                 if (param != null)
                 {
                     command.AppendAnonymousParameters(param);
+                }
+                object result = await command.ExecuteScalarAsync();
+                return (T)result;
+            }
+        }
+
+        /// <summary>
+        /// 获取标量值
+        /// </summary>
+        public static async Task<T> ScalarAsync<T>(this DbConnection connection, SqlBuilder builder)
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+            var buildResult = builder.GetQuery();
+            string sql = buildResult.Item1;
+            Dictionary<string, object> param = buildResult.Item2;
+            using (DbCommand command = connection.CreateCommand())
+            {
+                command.CommandText = sql;
+                command.Parameters.Clear();
+                if (param != null)
+                {
+                    command.AppendDictionaryParameters(param);
                 }
                 object result = await command.ExecuteScalarAsync();
                 return (T)result;
@@ -288,6 +354,9 @@ namespace SiHan.Libs.Ado
             }
         }
 
+        /// <summary>
+        /// 批量删除
+        /// </summary>
         public static async Task<int> DeleteAsync<T>(this DbConnection connection, IEnumerable<T> objList, DbTransaction transaction) where T : BaseEntity
         {
             if (connection == null)
@@ -393,6 +462,9 @@ namespace SiHan.Libs.Ado
             }
         }
 
+        /// <summary>
+        /// 更新实体
+        /// </summary>
         public static async Task<int> UpdateAsync<T>(this DbConnection connection, IEnumerable<T> objList, DbTransaction transaction) where T : BaseEntity
         {
             if (connection == null)
@@ -425,6 +497,23 @@ namespace SiHan.Libs.Ado
                 }
             }
             return count;
+        }
+
+        /// <summary>
+        /// 创建数据表
+        /// </summary>
+        public static async Task CreateTableAsync<T>(this DbConnection connection) where T : BaseEntity
+        {
+            if (connection == null)
+            {
+                throw new ArgumentNullException(nameof(connection));
+            }
+            await connection.ExecuteNonQueryAsync(DbTableHelper.CreateTableSQL<T>());
+            string createIndexSql = DbTableHelper.CreateIndexSQL<T>();
+            if (!string.IsNullOrWhiteSpace(createIndexSql))
+            {
+                await connection.ExecuteNonQueryAsync(createIndexSql);
+            }
         }
     }
 }

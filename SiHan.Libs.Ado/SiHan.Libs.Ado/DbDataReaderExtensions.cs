@@ -26,13 +26,25 @@ namespace SiHan.Libs.Ado
                 }
                 else
                 {
-                    if (column.ValueConvert!=null)
+                    if (column.ValueConvert != null)
                     {
                         property.SetValue(obj, column.ValueConvert.Read(value));
                     }
                     else
                     {
-                        property.SetValue(obj, value);
+                        if (column.IsGuidString)
+                        {
+                            Guid guid = (Guid)value;
+                            property.SetValue(obj, guid.ToString());
+                        }
+                        else if (column.IsEnum)
+                        {
+                            property.SetValue(obj, Enum.ToObject(property.PropertyType, Convert.ToInt32(value)), null);
+                        }
+                        else
+                        {
+                            property.SetValue(obj, value);
+                        }
                     }
                 }
             }

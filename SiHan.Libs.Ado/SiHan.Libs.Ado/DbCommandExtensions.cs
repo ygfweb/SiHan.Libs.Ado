@@ -6,6 +6,9 @@ using System.Text;
 
 namespace SiHan.Libs.Ado
 {
+    /// <summary>
+    /// DbCommand扩展类
+    /// </summary>
     public static class DbCommandExtensions
     {
         /// <summary>
@@ -21,7 +24,8 @@ namespace SiHan.Libs.Ado
             }
             if (paramObject != null)
             {
-                foreach (PropertyInfo pInfo in paramObject.GetType().GetProperties())
+                Type paramType = paramObject.GetType();
+                foreach (PropertyInfo pInfo in paramType.GetProperties())
                 {
                     var parameter = command.CreateParameter();
                     string name = pInfo.Name;
@@ -30,6 +34,10 @@ namespace SiHan.Libs.Ado
                     if (value == null)
                     {
                         parameter.Value = DBNull.Value;
+                    }
+                    else if (pInfo.PropertyType.IsEnum)
+                    {
+                        parameter.Value = Convert.ToInt16(value);
                     }
                     else
                     {
@@ -72,8 +80,46 @@ namespace SiHan.Libs.Ado
                     }
                     else
                     {
-                        parameter.Value = value;
+                        if (item.Value.IsEnum)
+                        {
+                            parameter.Value = Convert.ToInt16(value);
+                        }
+                        else if (item.Value.IsGuidString)
+                        {
+                            parameter.Value = Guid.Parse(value.ToString());
+                        }
+                        else
+                        {
+                            parameter.Value = value;
+                        }
                     }
+                }
+                command.Parameters.Add(parameter);
+            }
+        }
+
+        /// <summary>
+        /// 使用字典为命令追加参数
+        /// </summary>
+        public static void AppendDictionaryParameters(this DbCommand command, Dictionary<string, object> keyValues)
+        {
+            if (keyValues == null)
+            {
+                throw new ArgumentNullException(nameof(keyValues));
+            }
+            foreach (var item in keyValues)
+            {
+                var parameter = command.CreateParameter();
+                string name = item.Key;
+                object value = item.Value;
+                parameter.ParameterName = "@" + name;
+                if (value == null)
+                {
+                    parameter.Value = DBNull.Value;
+                }
+                else
+                {
+                    parameter.Value = value;
                 }
                 command.Parameters.Add(parameter);
             }

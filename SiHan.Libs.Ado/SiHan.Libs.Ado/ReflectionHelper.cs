@@ -30,6 +30,18 @@ namespace SiHan.Libs.Ado
             }
         }
 
+        /// <summary>
+        /// 检查类型是否是可空泛型
+        /// </summary>
+        public static bool IsNullable(Type type)
+        {
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+        }
+
         public static TableMapper ToMapper<T>() where T : BaseEntity
         {
             Type type = typeof(T);
@@ -66,7 +78,7 @@ namespace SiHan.Libs.Ado
                 {
                     // 当属性名为ID，但又未指定Key特性时，按以下规则判断，如果是整数，则为自动增量，否则不是自动增量。
                     string propertyTypeName = property.PropertyType.FullName;
-                    if (propertyTypeName == "System.Int32" || propertyTypeName == "System.UInt32" || propertyTypeName== "System.Int64" || propertyTypeName== "System.UInt64")
+                    if (propertyTypeName == "System.Int32" || propertyTypeName == "System.UInt32" || propertyTypeName == "System.Int64" || propertyTypeName == "System.UInt64")
                     {
                         isAuto = true;
                     }
@@ -82,6 +94,7 @@ namespace SiHan.Libs.Ado
                     isAuto = false;
                 }
                 ColumnAttribute columnAttribute = property.GetCustomAttribute<ColumnAttribute>();
+                IndexAttribute indexAttribute = property.GetCustomAttribute<IndexAttribute>();
                 string columnName = "";
                 BaseValueConvert valueConvert = null;
                 if (columnAttribute != null)
@@ -123,7 +136,13 @@ namespace SiHan.Libs.Ado
                     PropertyInfo = property,
                     PropertyName = property.Name,
                     ValueConvert = valueConvert,
-                    IsAuto = isAuto
+                    IsAuto = isAuto,
+                    IsEnum = property.PropertyType.IsEnum,
+                    IsGuidString = property.PropertyType == typeof(string) && columnName.ToLower().Contains("id"),
+                    IsCanNull = IsNullable(property.PropertyType),
+                    IsIndex = indexAttribute != null,
+                    DbType = (columnAttribute != null && !string.IsNullOrWhiteSpace(columnAttribute.DbType)) ? columnAttribute.DbType : "",
+                    DbDefaultValue = (columnAttribute != null && !string.IsNullOrWhiteSpace(columnAttribute.DbDefaultValue)) ? columnAttribute.DbDefaultValue : ""
                 };
                 tableMapper.Add(columnMapper);
             }

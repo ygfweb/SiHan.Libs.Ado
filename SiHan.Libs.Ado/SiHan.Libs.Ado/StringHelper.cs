@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace SiHan.Libs.Ado
 {
-    public class StringHelper
+    internal class StringHelper
     {
         /// <summary>
         /// Pascal风格转小写下划线

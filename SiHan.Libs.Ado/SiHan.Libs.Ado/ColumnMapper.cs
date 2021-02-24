@@ -39,6 +39,36 @@ namespace SiHan.Libs.Ado
         public bool IsAuto { get; set; } = false;
 
         /// <summary>
+        /// 是否是枚举类型
+        /// </summary>
+        public bool IsEnum { get; set; } = false;
+
+        /// <summary>
+        /// 是否是Guid的字符串类型
+        /// </summary>
+        public bool IsGuidString { get; set; } = false;
+
+        /// <summary>
+        /// 是否可为空
+        /// </summary>
+        public bool IsCanNull { get; set; } = false;
+
+        /// <summary>
+        /// 是否是索引列
+        /// </summary>
+        public bool IsIndex { get; set; } = false;
+
+        /// <summary>
+        /// 数据库类型
+        /// </summary>
+        public string DbType { get; set; } = "";
+
+        /// <summary>
+        /// 数据库默认值
+        /// </summary>
+        public string DbDefaultValue { get; set; } = "";
+
+        /// <summary>
         /// 获取实例对象的属性值
         /// </summary>
         public object GetPropertyValue(object objectInstance)
